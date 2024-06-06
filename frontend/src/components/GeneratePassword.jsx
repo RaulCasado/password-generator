@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { fetchPassword } from '../services/apiService';
 
 export function GeneratePassword() {
   const [password, setPassword] = useState('');
@@ -10,29 +10,14 @@ export function GeneratePassword() {
   const [includeNumbers, setIncludeNumbers] = useState(false);
   const [includeSpecialCharacters, setIncludeSpecialCharacters] = useState(false);
 
-  const fetchPassword = () => {
+  const handleButtonClick = async () => {
     setError(null);
-    axios.post('http://localhost:5000/request_password', {
-      length,
-      includeUppercase,
-      includeLowercase,
-      includeNumbers,
-      includeSpecialCharacters
-    })
-      .then(response => {
-        setPassword(response.data.password);
-      })
-      .catch(error => {
-        if (error.response && error.response.status === 400) {
-          setError(error.response.data.error);
-        } else {
-          setError("Failed to fetch password. Please try again.");
-        }
-      });
-  };
-
-  const handleButtonClick = () => {
-    fetchPassword();
+    try {
+      const newPassword = await fetchPassword(length, includeUppercase, includeLowercase, includeNumbers, includeSpecialCharacters);
+      setPassword(newPassword);
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   return (
