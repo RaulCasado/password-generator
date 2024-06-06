@@ -13,6 +13,7 @@ export function GenerateFakeData() {
     dni: false
   });
   const [generatedData, setGeneratedData] = useState(null);
+  const [error, setError] = useState(null)
 
   const handleToggle = (field) => {
     setData({
@@ -22,11 +23,12 @@ export function GenerateFakeData() {
   };
 
   const handleGenerate = async () => {
+    setError(null)
     try {
       const generatedData = await fetchFakeData(data);
       setGeneratedData(generatedData);
     } catch (error) {
-      console.error('Error generating fake data:', error);
+        setError(error.message);
     }
   };
   
@@ -115,6 +117,12 @@ export function GenerateFakeData() {
         </label>
       </div>
       <button onClick={handleGenerate}>Generar Datos</button>
+
+      {error && (
+        <div style={{ color: 'red', marginTop: '1rem' }}>
+          Error: {error}
+        </div>
+      )}
 
       {generatedData && (
         <div>

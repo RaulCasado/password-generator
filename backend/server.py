@@ -36,12 +36,9 @@ def random_password():
     include_special_characters = data.get('includeSpecialCharacters', False)
 
     if not (include_uppercase or include_lowercase or include_numbers or include_special_characters):
-        return jsonify({'error': 'At least one character type must be selected'}), 400
+        return jsonify({'error': 'Alguna opción tiene que ser seleccionada'}), 400
 
     random_password = generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters)
-    
-    if random_password is None:
-        return jsonify({'error': 'Failed to generate password'}), 400
 
     return jsonify({'password': random_password})
 
@@ -53,13 +50,16 @@ def request_password():
         data = response.json()
         return jsonify({'password': data['password']})
     else:
-        error_message = response.json().get('error', 'Failed to get password')
+        error_message = response.json().get('error', 'Fallo al obtener la contraseña')
         return jsonify({'error': error_message}), response.status_code
 
 @app.route('/api/generate_fake_data', methods=['POST'])
 def generate_fake_data():
     data = request.json
     generated_data = {}
+
+    if not any(data.values()):
+        return jsonify({'error': 'No se ha seleccionado ningún tipo de dato falso'}), 400
 
     if data.get('name'):
         generated_data['Nombre'] = fake.name()

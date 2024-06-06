@@ -14,7 +14,7 @@ export const fetchPassword = async (length, includeUppercase, includeLowercase, 
     if (error.response && error.response.status === 400) {
       throw new Error(error.response.data.error);
     } else {
-      throw new Error("Failed to fetch password. Please try again.");
+      throw new Error("Fallo al conectarse con el servidor. Por favor pruebe de nuevo.");
     }
   }
 };
@@ -24,6 +24,10 @@ export const fetchFakeData = async (options) => {
     const response = await axios.post('http://localhost:5000/api/generate_fake_data', options);
     return response.data;
   } catch (error) {
-    throw new Error("Failed to fetch fake data. Please try again.");
+    if (error.response && error.response.status === 400){
+        throw new Error(error.response.data.error)
+    }else{
+        throw new Error("Fallo al conectarse con el servidor. Por favor pruebe de nuevo.");
+    }
   }
 };
