@@ -19,7 +19,7 @@ def generate_password(length, include_uppercase, include_lowercase, include_numb
         characters += string.punctuation
 
     if not characters:
-        return 'Error: No character set selected', 400
+        return None
 
     return ''.join(secrets.choice(characters) for _ in range(length))
 
@@ -36,6 +36,10 @@ def random_password():
         return jsonify({'error': 'At least one character type must be selected'}), 400
 
     random_password = generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters)
+    
+    if random_password is None:
+        return jsonify({'error': 'Failed to generate password'}), 400
+
     return jsonify({'password': random_password})
 
 @app.route('/request_password', methods=['POST'])
@@ -46,7 +50,8 @@ def request_password():
         data = response.json()
         return jsonify({'password': data['password']})
     else:
-        return jsonify({'error': 'Failed to get password'})
+        error_message = response.json().get('error', 'Failed to get password')
+        return jsonify({'error': error_message}), response.status_code
 
 if __name__ == '__main__':
     app.run(debug=True)
