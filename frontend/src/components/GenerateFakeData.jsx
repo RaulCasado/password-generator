@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useEffect,useState } from 'react';
 import { fetchFakeData } from '../services/apiService';
 
 export function GenerateFakeData() {
-  const [data, setData] = useState({
-    name: false,
-    address: false,
-    postalCode: false,
-    phoneNumber: false,
-    creditCard: false,
-    age: false,
-    dni: false
-  });
   const [generatedData, setGeneratedData] = useState(null);
   const [error, setError] = useState(null)
+  const [data, setData] = useState({
+    name: true,
+    address: true,
+    postalCode: true,
+    phoneNumber: true,
+    creditCard: true,
+    age: true,
+    dni: true,
+    userLanguage : ""
+  });
+  
 
   const handleToggle = (field) => {
     setData({
@@ -31,6 +33,14 @@ export function GenerateFakeData() {
     }
   };
   
+
+  useEffect(() => {
+    const language = navigator.language;
+    setData({
+      ...data,
+      userLanguage: language,
+    });
+  }, []);
 
   return (
     <div>

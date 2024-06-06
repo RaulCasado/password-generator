@@ -62,6 +62,12 @@ def generate_fake_data():
 
     if not any(data.values()):
         return jsonify({'error': 'No se ha seleccionado ningún tipo de dato falso'}), 400
+    
+    user_language = data.get('userLanguage').replace('-', '_')
+    try:
+        fake = faker.Faker(user_language) 
+    except:
+        fake = faker.Faker('es_ES')
 
     if data.get('name'):
         generated_data['Nombre'] = fake.name()
@@ -85,6 +91,7 @@ def generate_fake_data():
         generated_data['Número de Tarjeta de Crédito'] = fake.credit_card_number()
         generated_data['Fecha de Vencimiento'] = fake.credit_card_expire()
         generated_data['CVV'] = fake.credit_card_security_code()
+        generated_data['IBAN'] = fake.iban()
 
     if data.get('age'):
         age = fake.random_int(min=18, max=90)
