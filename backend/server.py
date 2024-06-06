@@ -3,9 +3,12 @@ from flask_cors import CORS
 import secrets
 import string
 import requests
+import faker
 
 app = Flask(__name__)
 CORS(app)
+
+fake = faker.Faker()
 
 def generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters):
     characters = ''
@@ -52,6 +55,39 @@ def request_password():
     else:
         error_message = response.json().get('error', 'Failed to get password')
         return jsonify({'error': error_message}), response.status_code
+
+@app.route('/api/generate_fake_data', methods=['POST'])
+def generate_fake_data():
+    data = request.json
+    generated_data = {}
+
+    if data.get('name'):
+        generated_data['Nombre'] = fake.name()
+
+    if data.get('address'):
+        generated_data['Dirección'] = fake.address()
+
+    if data.get('postalCode'):
+        generated_data['Código Postal'] = fake.zipcode()
+
+    if data.get('phoneNumber'):
+        generated_data['Teléfono'] = fake.phone_number()
+
+    if data.get('creditCard'):
+        generated_data['Número de Tarjeta de Crédito'] = fake.credit_card_number()
+        generated_data['Fecha de Vencimiento'] = fake.credit_card_expire()
+        generated_data['CVV'] = fake.credit_card_security_code()
+
+    if data.get('birthdate'):
+        generated_data['Fecha de Nacimiento'] = fake.date_of_birth().isoformat()
+
+    if data.get('age'):
+        generated_data['Edad'] = fake.random_int(min=18, max=90)
+
+    if data.get('dni'):
+        generated_data['DNI'] = fake.random_number(digits=8)
+
+    return jsonify(generated_data)
 
 if __name__ == '__main__':
     app.run(debug=True)

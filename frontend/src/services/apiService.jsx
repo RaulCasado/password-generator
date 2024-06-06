@@ -1,4 +1,3 @@
-// src/apiService.js
 import axios from 'axios';
 
 export const fetchPassword = async (length, includeUppercase, includeLowercase, includeNumbers, includeSpecialCharacters) => {
@@ -17,5 +16,14 @@ export const fetchPassword = async (length, includeUppercase, includeLowercase, 
     } else {
       throw new Error("Failed to fetch password. Please try again.");
     }
+  }
+};
+
+export const fetchFakeData = async (options) => {
+  try {
+    const response = await axios.post('http://localhost:5000/api/generate_fake_data', options);
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to fetch fake data. Please try again.");
   }
 };
