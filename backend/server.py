@@ -1,14 +1,16 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import secrets
+import random
 import string
 import requests
 import faker
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 CORS(app)
 
-fake = faker.Faker()
+fake = faker.Faker('es_ES')
 
 def generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters):
     characters = ''
@@ -65,27 +67,30 @@ def generate_fake_data():
         generated_data['Nombre'] = fake.name()
 
     if data.get('address'):
-        generated_data['Dirección'] = fake.address()
+        generated_data['Dirección'] = fake.street_address()
 
     if data.get('postalCode'):
-        generated_data['Código Postal'] = fake.zipcode()
+        generated_data['Código Postal'] = fake.postcode()
 
     if data.get('phoneNumber'):
         generated_data['Teléfono'] = fake.phone_number()
+
+    if data.get('dni'):
+        random_number_dni = fake.numerify(text='#########')
+        random_letter = random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+        random_dni = f"{random_number_dni}{random_letter}"
+        generated_data["DNI"] = random_dni
 
     if data.get('creditCard'):
         generated_data['Número de Tarjeta de Crédito'] = fake.credit_card_number()
         generated_data['Fecha de Vencimiento'] = fake.credit_card_expire()
         generated_data['CVV'] = fake.credit_card_security_code()
 
-    if data.get('birthdate'):
-        generated_data['Fecha de Nacimiento'] = fake.date_of_birth().isoformat()
-
     if data.get('age'):
-        generated_data['Edad'] = fake.random_int(min=18, max=90)
-
-    if data.get('dni'):
-        generated_data['DNI'] = fake.random_number(digits=8)
+        age = fake.random_int(min=18, max=90)
+        generated_data['Edad'] = age
+        birthdate = datetime.now() - timedelta(days=age * 365)
+        generated_data['Fecha de Nacimiento'] = birthdate.date().isoformat()
 
     return jsonify(generated_data)
 

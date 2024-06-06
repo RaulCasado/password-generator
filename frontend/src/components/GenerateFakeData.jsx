@@ -8,7 +8,6 @@ export function GenerateFakeData() {
     postalCode: false,
     phoneNumber: false,
     creditCard: false,
-    birthdate: false,
     age: false,
     dni: false
   });
@@ -84,16 +83,6 @@ export function GenerateFakeData() {
             onChange={() => handleToggle('creditCard')}
           />
           Número de Tarjeta de Crédito
-        </label>
-      </div>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={data.birthdate}
-            onChange={() => handleToggle('birthdate')}
-          />
-          Fecha de Nacimiento
         </label>
       </div>
       <div>
