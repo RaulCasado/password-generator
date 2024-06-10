@@ -22,11 +22,11 @@ export function GeneratePassword() {
 
   return (
     <div>
-      <p>Random Password: {password}</p>
+      <p>Contraseña aleatoria: {password}</p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <div>
         <label>
-          Length:
+          Longitud:
           <input
             type="number"
             value={length}
@@ -42,7 +42,7 @@ export function GeneratePassword() {
             checked={includeUppercase}
             onChange={() => setIncludeUppercase(!includeUppercase)}
           />
-          Include Uppercase
+          Incluye mayúsculas
         </label>
       </div>
       <div>
@@ -52,7 +52,7 @@ export function GeneratePassword() {
             checked={includeLowercase}
             onChange={() => setIncludeLowercase(!includeLowercase)}
           />
-          Include Lowercase
+          Incluye minúsculas
         </label>
       </div>
       <div>
@@ -62,7 +62,7 @@ export function GeneratePassword() {
             checked={includeNumbers}
             onChange={() => setIncludeNumbers(!includeNumbers)}
           />
-          Include Numbers
+          Incluye números
         </label>
       </div>
       <div>
@@ -72,10 +72,10 @@ export function GeneratePassword() {
             checked={includeSpecialCharacters}
             onChange={() => setIncludeSpecialCharacters(!includeSpecialCharacters)}
           />
-          Include Special Characters
+          Incluye carácteres especiales
         </label>
       </div>
-      <button onClick={handleButtonClick}>Get New Password</button>
+      <button onClick={handleButtonClick}>Crear contraseña</button>
     </div>
   );
 }
