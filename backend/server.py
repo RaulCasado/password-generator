@@ -6,6 +6,8 @@ import string
 import requests
 import faker
 from datetime import datetime, timedelta
+from tempmail import EMail
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 CORS(app)
@@ -101,5 +103,40 @@ def generate_fake_data():
 
     return jsonify(generated_data)
 
+
+@app.route('/api/generate_email', methods=['GET'])
+def generate_email():
+    try:
+        email = EMail()
+        return jsonify({'email': email.address}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/get_emails', methods=['GET'])
+def get_emails():
+    try:
+        email_address = request.args.get('email')
+        if not email_address:
+            return jsonify({'error': 'El email es requerido'}), 400
+        
+        email = EMail(email_address)
+        inbox = email.get_inbox()
+
+        messages = []
+        for msg_info in inbox:
+            soup = BeautifulSoup(msg_info.message.body, 'html.parser')
+            clean_body = soup.get_text()
+            messages.append({
+                'subject': msg_info.subject,
+                'from_addr': msg_info.from_addr,
+                'body': clean_body,
+                'date': msg_info.date
+            })
+        
+        return jsonify({'emails': messages}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 if __name__ == '__main__':
     app.run(debug=True)
