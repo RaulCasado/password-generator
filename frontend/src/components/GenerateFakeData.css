@@ -1,0 +1,99 @@
+/* GenerateFakeData.css */
+
+.generate-fake-data-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #333;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    color: white;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .checkbox-group {
+    margin-bottom: 2rem;
+    text-align: left;
+  }
+  
+  .checkbox-item {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .checkbox-item label {
+    font-size: 1.1rem;
+  }
+  
+  .checkbox-item input {
+    margin-left: 0.5rem;
+    accent-color: #646cff; /* Cambia el color del checkbox */
+  }
+  
+  .generate-btn {
+    background-color: #646cff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.8em 1.5em;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 1rem;
+  }
+  
+  .generate-btn:hover {
+    background-color: #535bf2;
+  }
+  
+  .error-message {
+    color: #ff4c4c;
+    margin-top: 1rem;
+    font-size: 1rem;
+  }
+  
+  .generated-data {
+    margin-top: 2rem;
+    text-align: left;
+  }
+  
+  .generated-data h3 {
+    margin-bottom: 1rem;
+    color: #61dafb;
+  }
+  
+  .generated-data ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .generated-data ul li {
+    background-color: #444;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+  
+  .generated-data ul li strong {
+    color: #61dafb;
+  }
+  
+  @media (max-width: 600px) {
+    .generate-fake-data-container {
+      padding: 1rem;
+    }
+  
+    .title {
+      font-size: 1.5rem;
+    }
+  }
+  

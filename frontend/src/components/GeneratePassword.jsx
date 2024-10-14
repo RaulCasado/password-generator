@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { fetchPassword } from '../services/apiService';
+import './GeneratePassword.css'; // Estilos específicos para este componente
 
 export function GeneratePassword() {
   const [password, setPassword] = useState('');
@@ -21,10 +22,14 @@ export function GeneratePassword() {
   };
 
   return (
-    <div>
-      <p>Contraseña aleatoria: {password}</p>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <div>
+    <div className="generate-password-container">
+      <h2 className="title">Generar Contraseña Aleatoria</h2>
+      
+      {password && <p className="generated-password">Contraseña generada: {password}</p>}
+      
+      {error && <p className="error-message">Error: {error}</p>}
+      
+      <div className="input-group">
         <label>
           Longitud:
           <input
@@ -32,50 +37,58 @@ export function GeneratePassword() {
             value={length}
             onChange={(e) => setLength(Number(e.target.value))}
             min="1"
+            className="input-length"
           />
         </label>
       </div>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={includeUppercase}
-            onChange={() => setIncludeUppercase(!includeUppercase)}
-          />
-          Incluye mayúsculas
-        </label>
+
+      <div className="checkbox-group">
+        <div className="checkbox-item">
+          <label>
+            <input
+              type="checkbox"
+              checked={includeUppercase}
+              onChange={() => setIncludeUppercase(!includeUppercase)}
+            />
+            Incluye mayúsculas
+          </label>
+        </div>
+
+        <div className="checkbox-item">
+          <label>
+            <input
+              type="checkbox"
+              checked={includeLowercase}
+              onChange={() => setIncludeLowercase(!includeLowercase)}
+            />
+            Incluye minúsculas
+          </label>
+        </div>
+
+        <div className="checkbox-item">
+          <label>
+            <input
+              type="checkbox"
+              checked={includeNumbers}
+              onChange={() => setIncludeNumbers(!includeNumbers)}
+            />
+            Incluye números
+          </label>
+        </div>
+
+        <div className="checkbox-item">
+          <label>
+            <input
+              type="checkbox"
+              checked={includeSpecialCharacters}
+              onChange={() => setIncludeSpecialCharacters(!includeSpecialCharacters)}
+            />
+            Incluye carácteres especiales
+          </label>
+        </div>
       </div>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={includeLowercase}
-            onChange={() => setIncludeLowercase(!includeLowercase)}
-          />
-          Incluye minúsculas
-        </label>
-      </div>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={includeNumbers}
-            onChange={() => setIncludeNumbers(!includeNumbers)}
-          />
-          Incluye números
-        </label>
-      </div>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={includeSpecialCharacters}
-            onChange={() => setIncludeSpecialCharacters(!includeSpecialCharacters)}
-          />
-          Incluye carácteres especiales
-        </label>
-      </div>
-      <button onClick={handleButtonClick}>Crear contraseña</button>
+
+      <button className="generate-btn" onClick={handleButtonClick}>Crear contraseña</button>
     </div>
   );
 }

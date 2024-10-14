@@ -1,18 +1,20 @@
-import { Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import './Navigation.css';
+
 export function Navigation() {
-    return (
-        <nav>
-          <ul>
-            <li>
-              <Link to="/generate-password">Generar Contraseña</Link>
-            </li>
-            <li>
-              <Link to="/generate-email">Generar Correo</Link>
-            </li>
-            <li>
-              <Link to="/generate-fake-data">Generar Fake Data</Link>
-            </li>
-          </ul>
-        </nav>
-    )
+  return (
+    <nav className="navigation">
+      <ul className="navigation-list">
+        <li className="navigation-item">
+          <Link to="/generate-password" className="navigation-link">Generar Contraseña</Link>
+        </li>
+        <li className="navigation-item">
+          <Link to="/generate-email" className="navigation-link">Generar Correo</Link>
+        </li>
+        <li className="navigation-item">
+          <Link to="/generate-fake-data" className="navigation-link">Generar Fake Data</Link>
+        </li>
+      </ul>
+    </nav>
+  );
 }

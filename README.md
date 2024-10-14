@@ -14,20 +14,26 @@ To set up and run this Flask backend:
 
     Make sure you have cloned the repository.
 
-2. **Create and activate a virtual environment:**
+2. **Navigate to the project directory:**
+
+    ```bash
+    cd backend
+    ```
+
+3. **Create and activate a virtual environment:**
 
     ```bash
     python3 -m venv venv
     source venv/bin/activate  
     ```
 
-3. **Install the required dependencies:**
+4. **Install the required dependencies:**
 
     ```bash
     pip install -r requirements.txt
     ```
 
-4. **Run the application:**
+5. **Run the application:**
 
     ```bash
     python server.py

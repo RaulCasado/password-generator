@@ -1,0 +1,105 @@
+/* GenerateEmail.css */
+
+.generate-email-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #333;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    color: white;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .generated-email {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    color: #61dafb;
+  }
+  
+  .email {
+    font-weight: bold;
+    color: #f9f9f9;
+  }
+  
+  .button-group {
+    margin: 1.5rem 0;
+  }
+  
+  .generate-btn,
+  .update-btn {
+    background-color: #646cff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.8em 1.5em;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 0.5rem;
+  }
+  
+  .generate-btn:hover,
+  .update-btn:hover {
+    background-color: #535bf2;
+  }
+  
+  .error-message {
+    color: #ff4c4c;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+  
+  .messages-title {
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .messages-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .message-card {
+    background-color: #444;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    color: white;
+    text-align: left;
+  }
+  
+  .message-card p {
+    margin: 0.5rem 0;
+  }
+  
+  .message-card p strong {
+    color: #61dafb;
+  }
+  
+  .message-card p {
+    line-height: 1.6;
+  }
+  
+  @media (max-width: 600px) {
+    .generate-email-container {
+      padding: 1rem;
+    }
+  
+    .title {
+      font-size: 1.5rem;
+    }
+  
+    .generated-email {
+      font-size: 1rem;
+    }
+  }
+  
