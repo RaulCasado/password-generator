@@ -5,3 +5,4 @@ tempmail-python
 beautifulsoup4
 requests
 wordfreq
+gunicorn
