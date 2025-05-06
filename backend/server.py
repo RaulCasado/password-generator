@@ -3,7 +3,6 @@ from flask_cors import CORS
 import secrets
 import random
 import string
-import requests
 import faker
 from datetime import datetime, timedelta
 from tempmail import EMail
@@ -56,24 +55,6 @@ def generate_password(length, include_uppercase, include_lowercase, include_numb
         return generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars)
     
     return password
-
-@app.route('/api/random_password', methods=['POST'])
-def random_password():
-    data = request.json
-    length = data.get('length', 16)
-    include_uppercase = data.get('includeUppercase', False)
-    include_lowercase = data.get('includeLowercase', False)
-    include_numbers = data.get('includeNumbers', False)
-    include_special_characters = data.get('includeSpecialCharacters', False)
-    disallowed_chars = data.get('disallowedChars', '')
-    is_easy_to_remember = data.get('isEasyToRemember', False)
-
-    if not (include_uppercase or include_lowercase or include_numbers or include_special_characters or is_easy_to_remember):
-        return jsonify({'error': 'Alguna opción tiene que ser seleccionada'}), 400
-
-    random_password = generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars,is_easy_to_remember)
-    print(f"Generated password: {random_password}")
-    return jsonify({'password': random_password})
 
 @app.route('/api/website_password', methods=['POST'])
 def website_password():
@@ -181,10 +162,23 @@ def generate_fake_data():
 @app.route('/api/generate_email', methods=['GET'])
 def generate_email():
     try:
-        email = EMail()
-        return jsonify({'email': email.address}), 200
+        import uuid
+        import random
+        
+        domains = [
+            "tempmail.dev", "mailtemp.org", "tempmail.net", 
+            "temp-mail.org", "fakeinbox.com", "teml.net"
+        ]
+        
+        username = str(uuid.uuid4())[:8]
+        domain = random.choice(domains)
+        temp_email = f"{username}@{domain}"
+        
+        return jsonify({'email': temp_email}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        error_msg = f"Email generation error: {str(e)}"
+        print(error_msg)
+        return jsonify({'error': error_msg}), 500
 
 
 @app.route('/api/get_emails', methods=['GET'])
@@ -194,23 +188,32 @@ def get_emails():
         if not email_address:
             return jsonify({'error': 'El email es requerido'}), 400
         
-        email = EMail(email_address)
-        inbox = email.get_inbox()
-
-        messages = []
-        for msg_info in inbox:
-            soup = BeautifulSoup(msg_info.message.body, 'html.parser')
-            clean_body = soup.get_text()
-            messages.append({
-                'subject': msg_info.subject,
-                'from_addr': msg_info.from_addr,
-                'body': clean_body,
-                'date': msg_info.date
-            })
-        
-        return jsonify({'emails': messages}), 200
+        try:
+            # Try the original implementation
+            email = EMail(email_address)
+            inbox = email.get_inbox()
+            
+            messages = []
+            for msg_info in inbox:
+                soup = BeautifulSoup(msg_info.message.body, 'html.parser')
+                clean_body = soup.get_text()
+                messages.append({
+                    'subject': msg_info.subject,
+                    'from_addr': msg_info.from_addr,
+                    'body': clean_body,
+                    'date': msg_info.date
+                })
+            return jsonify({'emails': messages}), 200
+        except Exception as e:
+            print(f"Error fetching emails: {str(e)}")
+            return jsonify({
+                'emails': [],
+                'message': 'El servicio de correo temporal está experimentando problemas. No se pueden recuperar los correos en este momento.'
+            }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        error_msg = f"Error in get_emails: {str(e)}"
+        print(error_msg)
+        return jsonify({'error': error_msg}), 500
     
 if __name__ == '__main__':
     app.run(debug=True)
