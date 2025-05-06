@@ -1,14 +1,29 @@
 import axios from 'axios';
 
-export const fetchPassword = async (length, includeUppercase, includeLowercase, includeNumbers, includeSpecialCharacters) => {
+export const fetchPassword = async (length, includeUppercase, includeLowercase, includeNumbers, includeSpecialCharacters, disallowedChars = '', easyToRemember) => {
   try {
     const response = await axios.post('http://localhost:5000/request_password', {
       length,
       includeUppercase,
       includeLowercase,
       includeNumbers,
-      includeSpecialCharacters
+      includeSpecialCharacters,
+      disallowedChars: '',
+      isEasyToRemember: easyToRemember
     });
+    return response.data.password;
+  } catch (error) {
+    if (error.response && error.response.status === 400) {
+      throw new Error(error.response.data.error);
+    } else {
+      throw new Error("Fallo al conectarse con el servidor. Por favor pruebe de nuevo.");
+    }
+  }
+};
+
+export const fetchWebsitePassword = async (websiteRequirements) => {
+  try {
+    const response = await axios.post('http://localhost:5000/api/website_password', websiteRequirements);
     return response.data.password;
   } catch (error) {
     if (error.response && error.response.status === 400) {

@@ -4,6 +4,17 @@
 
 Project made with React and Python. This project is made for those websites that will ask you for all your information to enter the site. Now you can just use this project to create fake data, generate temporal emails to get the verification code or create a new random password for this site.
 
+## Features
+
+- **Generate Random Passwords**: Create secure random passwords with customizable options
+- **Password Strength Meter**: Visual indicator of password strength
+- **Copy to Clipboard**: Easily copy generated passwords with one click
+- **Password History**: Keep track of previously generated passwords
+- **Save Passwords**: Save your favorite passwords with custom labels
+- **Website-Specific Passwords**: Generate passwords that meet specific website requirements
+- **Generate Fake Data**: Create realistic fake personal data
+- **Temporary Email**: Generate disposable email addresses to receive verification codes
+
 # Backend
 
 ## How to install
@@ -55,6 +66,12 @@ Generates a random password based on the provided criteria.
 **Method:** `POST`  
 Requests a random password from the backend.
 
+### Generate Website Password
+
+**Endpoint:** `/api/website_password`  
+**Method:** `POST`  
+Generates a password that meets specific website requirements.
+
 ### Generate Fake Data
 
 **Endpoint:** `/api/generate_fake_data`  
@@ -103,10 +120,15 @@ To install and run the frontend:
 
     The application will start running at `http://localhost:5173`.
 
-### Functions
+### Features
 
-- **Generate Fake Data:** Allows users to select various types of fake personal data they want to generate, such as name, address, postal code, phone number, credit card details, age, and DNI (national identity document). It sends the selected options to the backend API and displays the generated data.
+- **Generate Password:** Create random passwords with customizable options including length, character types, and special requirements.
+  - Password strength meter indicates how secure your generated password is
+  - Copy to clipboard functionality for easy use
+  - Password history tracking
+  - Save favorite passwords with custom labels
+  - Generate passwords that meet specific website requirements
 
-- **Generate Email:** Allows users to create a temporal email once its created you can get the mails and check it.
+- **Generate Fake Data:** Select various types of fake personal data to generate, such as name, address, postal code, phone number, credit card details, age, and DNI (national identity document).
 
-- **Generate Password:** Allows users to select various types of options. This will be sended to the backend API, once the password is generated it will be displayed.
+- **Generate Email:** Create a temporary email address to receive messages without using your real email. View messages received at this address directly in the application.

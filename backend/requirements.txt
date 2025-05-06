@@ -4,3 +4,4 @@ faker
 tempmail-python
 beautifulsoup4
 requests
+wordfreq

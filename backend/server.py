@@ -8,13 +8,21 @@ import faker
 from datetime import datetime, timedelta
 from tempmail import EMail
 from bs4 import BeautifulSoup
+from wordfreq import top_n_list
 
 app = Flask(__name__)
 CORS(app)
 
 fake = faker.Faker('es_ES')
 
-def generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters):
+def generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars='',is_easy_to_remember=False):
+    if is_easy_to_remember:
+        words = top_n_list('es', 2000)
+        sysrand = secrets.SystemRandom()
+        selection = sysrand.sample(words, k=4)
+        separator = sysrand.choice(['-', '_', ''])
+        return separator.join(selection)
+    
     characters = ''
     if include_uppercase:
         characters += string.ascii_uppercase
@@ -24,11 +32,30 @@ def generate_password(length, include_uppercase, include_lowercase, include_numb
         characters += string.digits
     if include_special_characters:
         characters += string.punctuation
+    
+
+    # Remove disallowed characters
+    if disallowed_chars:
+        for char in disallowed_chars:
+            characters = characters.replace(char, '')
 
     if not characters:
         return None
 
-    return ''.join(secrets.choice(characters) for _ in range(length))
+    # Generate password
+    password = ''.join(secrets.choice(characters) for _ in range(length))
+    
+    # Verify the password meets requirements
+    if include_uppercase and not any(c.isupper() for c in password):
+        return generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars)
+    if include_lowercase and not any(c.islower() for c in password):
+        return generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars)
+    if include_numbers and not any(c.isdigit() for c in password):
+        return generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars)
+    if include_special_characters and not any(c in string.punctuation for c in password):
+        return generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars)
+    
+    return password
 
 @app.route('/api/random_password', methods=['POST'])
 def random_password():
@@ -38,13 +65,44 @@ def random_password():
     include_lowercase = data.get('includeLowercase', False)
     include_numbers = data.get('includeNumbers', False)
     include_special_characters = data.get('includeSpecialCharacters', False)
+    disallowed_chars = data.get('disallowedChars', '')
+    is_easy_to_remember = data.get('isEasyToRemember', False)
 
-    if not (include_uppercase or include_lowercase or include_numbers or include_special_characters):
+    if not (include_uppercase or include_lowercase or include_numbers or include_special_characters or is_easy_to_remember):
         return jsonify({'error': 'Alguna opción tiene que ser seleccionada'}), 400
 
-    random_password = generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters)
-
+    random_password = generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars,is_easy_to_remember)
+    print(f"Generated password: {random_password}")
     return jsonify({'password': random_password})
+
+@app.route('/api/website_password', methods=['POST'])
+def website_password():
+    data = request.json
+    min_length = data.get('minLength', 8)
+    max_length = data.get('maxLength', 16) 
+    requires_uppercase = data.get('requiresUppercase', False)
+    requires_lowercase = data.get('requiresLowercase', False)
+    requires_numbers = data.get('requiresNumbers', False)
+    requires_special = data.get('requiresSpecial', False)
+    disallowed_chars = data.get('disallowedChars', '')
+    
+    # Generate a random length between min and max
+    length = random.randint(min_length, max_length)
+    
+    # Generate password
+    password = generate_password(
+        length, 
+        requires_uppercase, 
+        requires_lowercase, 
+        requires_numbers, 
+        requires_special, 
+        disallowed_chars
+    )
+    
+    if not password:
+        return jsonify({'error': 'No se pudo generar una contraseña con los requisitos especificados'}), 400
+    
+    return jsonify({'password': password})
 
 @app.route('/request_password', methods=['POST'])
 def request_password():

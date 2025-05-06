@@ -1,20 +1,15 @@
-// App.jsx
 import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { GenerateFakeData } from './components/GenerateFakeData';
 import { GenerateEmail } from './components/GenerateEmail';
 import { GeneratePassword } from './components/GeneratePassword';
+import { Navigation } from './components/Navigation';
 
 function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        <nav className="navigation">
-          <a href="/">Home</a>
-          <a href="/generate-password">Generate Password</a>
-          <a href="/generate-email">Generate Email</a>
-          <a href="/generate-fake-data">Generate Fake Data</a>
-        </nav>
+        <Navigation />
 
         <div className="card">
           <Routes>
