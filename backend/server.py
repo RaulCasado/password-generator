@@ -106,14 +106,30 @@ def website_password():
 
 @app.route('/request_password', methods=['POST'])
 def request_password():
-    response = requests.post('http://localhost:5000/api/random_password', json=request.json)
+    data = request.json
+    length                     = data.get('length', 16)
+    include_uppercase          = data.get('includeUppercase', False)
+    include_lowercase          = data.get('includeLowercase', False)
+    include_numbers            = data.get('includeNumbers', False)
+    include_special_characters = data.get('includeSpecialCharacters', False)
+    disallowed_chars           = data.get('disallowedChars', '')
+    is_easy_to_remember        = data.get('isEasyToRemember', False)
 
-    if response.status_code == 200:
-        data = response.json()
-        return jsonify({'password': data['password']})
-    else:
-        error_message = response.json().get('error', 'Fallo al obtener la contraseña')
-        return jsonify({'error': error_message}), response.status_code
+    if not (include_uppercase or include_lowercase or include_numbers
+            or include_special_characters or is_easy_to_remember):
+        return jsonify({'error': 'Alguna opción tiene que ser seleccionada'}), 400
+
+    pwd = generate_password(
+        length,
+        include_uppercase,
+        include_lowercase,
+        include_numbers,
+        include_special_characters,
+        disallowed_chars,
+        is_easy_to_remember
+    )
+    return jsonify({'password': pwd})
+
 
 @app.route('/api/generate_fake_data', methods=['POST'])
 def generate_fake_data():
