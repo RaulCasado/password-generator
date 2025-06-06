@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { generateEmail, getEmails } from "../services/apiService";
 import './GenerateEmail.css';
 
@@ -6,50 +6,144 @@ export function GenerateEmail() {
   const [email, setEmail] = useState('');
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [checkingInterval, setCheckingInterval] = useState(null);
+
 
   const handleGenerateEmail = async () => {
     try {
-      const tempEmail = await generateEmail();
+      setLoading(true);
+      setError('');
+      setSuccessMessage('');
+      
+      const response = await generateEmail();
+      console.log("Email generation response:", response);  // Debug output
+      
+      if (!response || !response.email) {
+        throw new Error("No se pudo generar un correo temporal. La respuesta del servidor es inválida.");
+      }
+      
+      const tempEmail = response.email;
       setEmail(tempEmail);
       setMessages([]);
-      setError('');
+      
+      // Set up automatic checking every 30 seconds
+      if (checkingInterval) {
+        clearInterval(checkingInterval);
+      }
+      
+      const interval = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          handleUpdateEmails(false);
+        }
+      }, 30000);
+      
+      setCheckingInterval(interval);
+      
+      // Initial check for messages
+      setTimeout(() => handleUpdateEmails(false), 1000);
+      
+      // Set success message
+      setSuccessMessage(`Correo temporal generado: ${tempEmail}.`);
     } catch (error) {
-      setError(error.message);
+      console.error("Email generation error:", error);  // Debug output
+      setError("No se pudo generar el correo temporal. Por favor verifique que el servidor backend esté en funcionamiento.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleUpdateEmails = async () => {
+  const handleUpdateEmails = async (showLoading = true) => {
+    if (!email) return;
+    
     try {
-      if (email) {
-        const receivedEmails = await getEmails(email);
-        setMessages(receivedEmails);
-        setError('');
+      if (showLoading) {
+        setLoading(true);
+      }
+      setError('');
+      
+      const receivedEmails = await getEmails(email);
+      setMessages(receivedEmails);
+      
+      if (showLoading) {
+        setSuccessMessage('Mensajes actualizados correctamente');
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(''), 3000);
       }
     } catch (error) {
-      setError(error.message);
+      setError("Error al verificar los mensajes. Por favor verifique que el servidor backend esté en funcionamiento.");
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
   return (
     <div className="generate-email-container">
       <h1 className="title">Correo Temporal</h1>
+      
+      <div className="email-info">
+        <p>
+          Genera un correo temporal que puedes usar para registrarte en servicios sin revelar tu 
+          correo personal. Los mensajes se pueden consultar en esta página.
+        </p>
+        <p className="email-note">
+          El sistema intentará crear un correo temporal real. Si no es posible, se usará un correo 
+          simulado que solo funciona dentro de la aplicación.
+        </p>
+        <p className="email-warning">
+          <strong>Importante:</strong> El correo temporal solo estará activo durante un tiempo limitado y 
+          los mensajes pueden tardar unos minutos en aparecer.
+        </p>
+      </div>
+      
+      {successMessage && <p className="success-message">{successMessage}</p>}
       {error && <p className="error-message">{error}</p>}
+      
       {email ? (
-        <p className="generated-email">Tu correo temporal es: <span className="email">{email}</span></p>
+        <div className="email-display">
+          <p className="generated-email">Tu correo temporal es: <span className="email">{email}</span></p>
+          <button className="copy-email-btn" onClick={() => {
+            navigator.clipboard.writeText(email);
+            setSuccessMessage('Correo copiado al portapapeles');
+            setTimeout(() => setSuccessMessage(''), 3000);
+          }}>
+            Copiar dirección
+          </button>
+        </div>
       ) : (
         <p>No se ha generado ningún correo temporal.</p>
       )}
+      
       <div className="button-group">
-        <button className="generate-btn" onClick={handleGenerateEmail}>
-          Generar Correo Temporal
+        <button 
+          className="generate-btn" 
+          onClick={handleGenerateEmail}
+          disabled={loading}
+        >
+          {loading && !email ? 'Generando...' : 'Generar Correo Temporal'}
         </button>
+        
         {email && (
-          <button className="update-btn" onClick={handleUpdateEmails}>
-            Actualizar Lista de Correos
-          </button>
+          <>
+            <button 
+              className="update-btn" 
+              onClick={() => handleUpdateEmails(true)}
+              disabled={loading}
+            >
+              {loading ? 'Actualizando...' : 'Verificar Mensajes'}
+            </button>
+          
+          </>
         )}
       </div>
+      
       <h2 className="messages-title">Mensajes Recibidos:</h2>
+      
+      {loading && email && <p className="loading-message">Cargando mensajes...</p>}
+      
       <ul className="messages-list">
         {messages.length > 0 ? (
           messages.map((message, index) => (
@@ -61,7 +155,9 @@ export function GenerateEmail() {
             </li>
           ))
         ) : (
-          <p>No hay mensajes aún.</p>
+          <p className="no-messages">
+            {email ? 'No hay mensajes aún. Envía un correo desde tu cuenta personal a esta dirección para probar.' : 'Genera un correo temporal para recibir mensajes.'}
+          </p>
         )}
       </ul>
     </div>

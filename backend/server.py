@@ -5,14 +5,32 @@ import random
 import string
 import faker
 from datetime import datetime, timedelta
-from tempmail import EMail
 from bs4 import BeautifulSoup
 from wordfreq import top_n_list
+import requests
 
 app = Flask(__name__)
 CORS(app)
 
 fake = faker.Faker('es_ES')
+
+# Simulated email storage - this will be used as fallback if external API fails
+email_storage = {}
+
+# Guerrilla Mail API constants
+GUERRILLA_API_URL = "https://api.guerrillamail.com/ajax.php"
+GUERRILLA_DOMAINS = [
+    "guerrillamail.com",
+    "guerrillamail.net",
+    "guerrillamail.org",
+    "guerrillamailblock.com",
+    "grr.la",
+    "pokemail.net",
+    "spam4.me"
+]
+
+# Keep session IDs for guerrilla mail
+guerrilla_sessions = {}
 
 def generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars='',is_easy_to_remember=False):
     if is_easy_to_remember:
@@ -162,58 +180,166 @@ def generate_fake_data():
 @app.route('/api/generate_email', methods=['GET'])
 def generate_email():
     try:
-        import uuid
-        import random
+        # Generate a username and select a random domain
+        username = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        domain = random.choice(GUERRILLA_DOMAINS)
         
-        domains = [
-            "tempmail.dev", "mailtemp.org", "tempmail.net", 
-            "temp-mail.org", "fakeinbox.com", "teml.net"
-        ]
+        # Get session ID from Guerrilla Mail
+        session_response = requests.get(f"{GUERRILLA_API_URL}?f=get_email_address&ip=127.0.0.1")
+        if session_response.status_code != 200:
+            return jsonify({'error': 'No se pudo obtener la sesión para el correo temporal'}), 500
         
-        username = str(uuid.uuid4())[:8]
-        domain = random.choice(domains)
-        temp_email = f"{username}@{domain}"
+        session_data = session_response.json()
+        sid_token = session_data.get('sid_token')
         
-        return jsonify({'email': temp_email}), 200
+        if not sid_token:
+            return jsonify({'error': 'No se pudo obtener la sesión para el correo temporal'}), 500
+        
+        # Set custom email address
+        set_email_response = requests.get(
+            f"{GUERRILLA_API_URL}?f=set_email_user&email_user={username}&sid_token={sid_token}"
+        )
+        
+        if set_email_response.status_code != 200:
+            return jsonify({'error': 'No se pudo establecer la dirección de correo temporal'}), 500
+        
+        email_data = set_email_response.json()
+        email_address = email_data.get('email_addr')
+        
+        if not email_address:
+            return jsonify({'error': 'No se pudo establecer la dirección de correo temporal'}), 500
+        
+        # Store the session ID for later use
+        guerrilla_sessions[email_address] = sid_token
+        
+        # Add a welcome message to explain the service
+        if email_address not in email_storage:
+            email_storage[email_address] = [{
+                'subject': 'Bienvenido a tu correo temporal',
+                'from_addr': 'system@passwordgenerator.app',
+                'body': (
+                    f'Tu correo temporal {email_address} está listo para usar.\n\n'
+                    f'Puedes utilizar esta dirección para registrarte en sitios web donde no quieres '
+                    f'usar tu correo personal.\n\n'
+                    f'Los mensajes recibidos aparecerán automáticamente en esta página. '
+                    f'También puedes hacer clic en "Verificar Mensajes" para actualizar.\n\n'
+                    f'Este correo temporal es real y puede recibir mensajes de cualquier remitente.'
+                ),
+                'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }]
+        
+        return jsonify({
+            'email': email_address,
+            'message': 'Correo temporal creado exitosamente'
+        }), 200
     except Exception as e:
         error_msg = f"Email generation error: {str(e)}"
         print(error_msg)
         return jsonify({'error': error_msg}), 500
 
-
 @app.route('/api/get_emails', methods=['GET'])
 def get_emails():
     try:
         email_address = request.args.get('email')
+        print(f"Received request to get emails for: {email_address}")
+        
         if not email_address:
+            print("Error: Email address is required")
             return jsonify({'error': 'El email es requerido'}), 400
         
+        # Parse the email address to get username and domain
         try:
-            # Try the original implementation
-            email = EMail(email_address)
-            inbox = email.get_inbox()
+            username, domain = email_address.split('@')
+            print(f"Parsed email - Username: {username}, Domain: {domain}")
+        except ValueError:
+            print(f"Error: Invalid email format: {email_address}")
+            return jsonify({'error': 'Formato de email inválido'}), 400
+        
+        # Check if the email is one of our Guerrilla Mail addresses
+        if domain in GUERRILLA_DOMAINS:
+            # Get the session ID for this email
+            sid_token = guerrilla_sessions.get(email_address)
             
-            messages = []
-            for msg_info in inbox:
-                soup = BeautifulSoup(msg_info.message.body, 'html.parser')
-                clean_body = soup.get_text()
-                messages.append({
-                    'subject': msg_info.subject,
-                    'from_addr': msg_info.from_addr,
-                    'body': clean_body,
-                    'date': msg_info.date
-                })
-            return jsonify({'emails': messages}), 200
-        except Exception as e:
-            print(f"Error fetching emails: {str(e)}")
-            return jsonify({
-                'emails': [],
-                'message': 'El servicio de correo temporal está experimentando problemas. No se pueden recuperar los correos en este momento.'
-            }), 200
+            if not sid_token:
+                print(f"No session found for {email_address}")
+                # Return welcome message only
+                messages = email_storage.get(email_address, [])
+                return jsonify({'emails': messages}), 200
+            
+            # Check for new emails
+            try:
+                check_email_url = f"{GUERRILLA_API_URL}?f=check_email&sid_token={sid_token}"
+                check_response = requests.get(check_email_url, timeout=10)
+                
+                if check_response.status_code != 200:
+                    print(f"Error checking emails: {check_response.text}")
+                    messages = email_storage.get(email_address, [])
+                    return jsonify({'emails': messages}), 200
+                
+                email_list_url = f"{GUERRILLA_API_URL}?f=get_email_list&sid_token={sid_token}&offset=0"
+                list_response = requests.get(email_list_url, timeout=10)
+                
+                if list_response.status_code != 200:
+                    print(f"Error getting email list: {list_response.text}")
+                    messages = email_storage.get(email_address, [])
+                    return jsonify({'emails': messages}), 200
+                
+                email_list = list_response.json().get('list', [])
+                messages = []
+                
+                for email in email_list:
+                    email_id = email.get('mail_id')
+                    if not email_id:
+                        continue
+                    
+                    # Get email details
+                    fetch_url = f"{GUERRILLA_API_URL}?f=fetch_email&sid_token={sid_token}&email_id={email_id}"
+                    fetch_response = requests.get(fetch_url, timeout=10)
+                    
+                    if fetch_response.status_code != 200:
+                        continue
+                    
+                    email_data = fetch_response.json()
+                    
+                    # Format the email and add it to our list
+                    message_body = email_data.get('mail_body', '')
+                    
+                    # If the body is HTML, extract plain text
+                    if message_body.startswith('<') and ('</html>' in message_body or '</body>' in message_body):
+                        try:
+                            soup = BeautifulSoup(message_body, 'html.parser')
+                            message_body = soup.get_text()
+                        except:
+                            pass  # Keep original if parsing fails
+                    
+                    messages.append({
+                        'subject': email_data.get('mail_subject', 'Sin asunto'),
+                        'from_addr': email_data.get('mail_from', 'Unknown'),
+                        'body': message_body,
+                        'date': email_data.get('mail_date', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    })
+                
+                # Also include our welcome message if messages is empty
+                if not messages:
+                    welcome_message = email_storage.get(email_address, [])
+                    messages.extend(welcome_message)
+                
+                return jsonify({'emails': messages}), 200
+            
+            except Exception as e:
+                print(f"Error retrieving emails from Guerrilla Mail: {e}")
+                messages = email_storage.get(email_address, [])
+                return jsonify({'emails': messages}), 200
+        
+        # For any other domain, just return stored messages
+        messages = email_storage.get(email_address, [])
+        return jsonify({'emails': messages}), 200
+    
     except Exception as e:
         error_msg = f"Error in get_emails: {str(e)}"
         print(error_msg)
         return jsonify({'error': error_msg}), 500
-    
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    print("Starting server on http://127.0.0.1:5000")
+    app.run(debug=True, host='0.0.0.0')

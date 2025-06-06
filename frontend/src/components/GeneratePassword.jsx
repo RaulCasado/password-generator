@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchPassword } from '../services/apiService';
+import { fetchPassword , fetchWebsitePassword} from '../services/apiService';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { SavedPasswords } from './SavedPasswords';
 import { PasswordHistory } from './PasswordHistory';
@@ -36,7 +36,7 @@ export function GeneratePassword() {
       setPassword(newPassword);
       
       // Add to password history
-      const history = JSON.parse(localStorage.getItem('passwordHistory') || '[]');
+      const history = JSON.parse(sessionStorage.getItem('passwordHistory') || '[]');
       const newEntry = {
         password: newPassword,
         timestamp: new Date().toISOString(),
@@ -49,7 +49,7 @@ export function GeneratePassword() {
       }
       
       history.unshift(newEntry);
-      localStorage.setItem('passwordHistory', JSON.stringify(history));
+      sessionStorage.setItem('passwordHistory', JSON.stringify(history));
       
     } catch (error) {
       setError(error.message);
@@ -71,7 +71,7 @@ export function GeneratePassword() {
 
   const handleSavePassword = () => {
     if (password) {
-      const savedPasswords = JSON.parse(localStorage.getItem('savedPasswords') || '[]');
+      const savedPasswords = JSON.parse(sessionStorage.getItem('savedPasswords') || '[]');
       const newEntry = {
         password,
         label: passwordLabel || 'Contraseña guardada',
@@ -79,26 +79,49 @@ export function GeneratePassword() {
       };
       
       savedPasswords.push(newEntry);
-      localStorage.setItem('savedPasswords', JSON.stringify(savedPasswords));
+      sessionStorage.setItem('savedPasswords', JSON.stringify(savedPasswords));
       
       setShowSaveForm(false);
       setPasswordLabel('');
     }
   };
 
-  const handleWebsiteRequirements = (requirements) => {
-    // Set minimum values based on website requirements
-    setLength(Math.max(requirements.minLength, length));
-    setIncludeUppercase(requirements.requiresUppercase);
-    setIncludeLowercase(requirements.requiresLowercase);
-    setIncludeNumbers(requirements.requiresNumbers);
-    setIncludeSpecialCharacters(requirements.requiresSpecial);
-    
-    // Set active tab back to generator
-    setActiveTab('generator');
-    
-    // Generate password with new requirements
-    handleButtonClick();
+  const handleWebsiteRequirements = async (requirements) => {
+    try {
+      setError(null);
+      // Call the specialized API endpoint for website passwords
+      const newPassword = await fetchWebsitePassword(requirements);
+      setPassword(newPassword);
+      // Set state variables to match the requirements
+      setLength(Math.max(requirements.minLength, length));
+      setIncludeUppercase(requirements.requiresUppercase);
+      setIncludeLowercase(requirements.requiresLowercase);
+      setIncludeNumbers(requirements.requiresNumbers);
+      setIncludeSpecialCharacters(requirements.requiresSpecial);
+      // Add to password history
+      const history = JSON.parse(sessionStorage.getItem('passwordHistory') || '[]');
+      const newEntry = {
+        password: newPassword,
+        timestamp: new Date().toISOString(),
+        settings: { 
+          length: requirements.minLength, 
+          includeUppercase: requirements.requiresUppercase, 
+          includeLowercase: requirements.requiresLowercase, 
+          includeNumbers: requirements.requiresNumbers, 
+          includeSpecialCharacters: requirements.requiresSpecial,
+          websiteName: requirements.websiteName || 'Custom Website'
+        }
+      };
+      if (history.length >= 20) {
+        history.pop();
+      } 
+      history.unshift(newEntry);
+      sessionStorage.setItem('passwordHistory', JSON.stringify(history));
+      // Switch to generator tab to show the password
+      setActiveTab('generator');
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   return (
@@ -134,6 +157,18 @@ export function GeneratePassword() {
       
       {activeTab === 'generator' && (
         <div className="generator-tab">
+          <div className="security-notice">
+            <p>
+              <strong>⚠️ Aviso de seguridad:</strong> Esta herramienta es un generador de contraseñas, no un gestor de contraseñas seguro.
+              Las contraseñas generadas y guardadas se almacenan temporalmente en el sessionStorage de tu navegador y
+              se eliminarán al cerrar la pestaña o el navegador.
+            </p>
+            <p>
+              Te recomendamos usar un gestor de contraseñas dedicado como LastPass, 1Password, Bitwarden o KeePass
+              para un almacenamiento seguro a largo plazo.
+            </p>
+          </div>
+
           {password && (
             <div className="password-result-container">
               <div className="password-display">

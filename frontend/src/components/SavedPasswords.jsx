@@ -9,7 +9,7 @@ export function SavedPasswords({ onSelect }) {
   const [passwordToSave, setPasswordToSave] = useState('');
   
   useEffect(() => {
-    const saved = localStorage.getItem('savedPasswords');
+    const saved = sessionStorage.getItem('savedPasswords');
     if (saved) {
       setSavedPasswords(JSON.parse(saved));
     }
@@ -23,7 +23,7 @@ export function SavedPasswords({ onSelect }) {
   const handleDeletePassword = (passwordToDelete) => {
     const updated = savedPasswords.filter(item => item.password !== passwordToDelete);
     setSavedPasswords(updated);
-    localStorage.setItem('savedPasswords', JSON.stringify(updated));
+    sessionStorage.setItem('savedPasswords', JSON.stringify(updated));
   };
   
   const showSavePasswordForm = (password) => {
@@ -43,7 +43,7 @@ export function SavedPasswords({ onSelect }) {
     
     const updated = [...savedPasswords, newEntry];
     setSavedPasswords(updated);
-    localStorage.setItem('savedPasswords', JSON.stringify(updated));
+    sessionStorage.setItem('savedPasswords', JSON.stringify(updated));
     
     setShowSaveForm(false);
     setPasswordToSave('');
@@ -53,6 +53,18 @@ export function SavedPasswords({ onSelect }) {
   return (
     <div className="saved-passwords">
       <h3>Contraseñas Guardadas</h3>
+      
+      <div className="security-warning">
+        <p>
+          <strong>⚠️ Aviso de seguridad:</strong> Las contraseñas se guardan temporalmente en el sessionStorage de tu navegador 
+          y se eliminarán al cerrar la pestaña o el navegador.
+        </p>
+        <p>
+          Esta herramienta es un generador de contraseñas, no un gestor de contraseñas seguro. 
+          Te recomendamos usar un gestor de contraseñas dedicado como LastPass, 1Password, Bitwarden o KeePass para 
+          almacenamiento seguro a largo plazo.
+        </p>
+      </div>
       
       {showSaveForm && (
         <div className="save-password-form">

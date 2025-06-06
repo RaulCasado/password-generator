@@ -56,10 +56,6 @@ To set up and run this Flask backend:
 
 ### Generate Random Password
 
-**Endpoint:** `/api/random_password`  
-**Method:** `POST`  
-Generates a random password based on the provided criteria.
-
 ### Request Password
 
 **Endpoint:** `/request_password`  
