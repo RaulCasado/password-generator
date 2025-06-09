@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from wordfreq import top_n_list
 import requests
+import hashlib
 
 app = Flask(__name__)
 CORS(app)
@@ -339,7 +340,62 @@ def get_emails():
         error_msg = f"Error in get_emails: {str(e)}"
         print(error_msg)
         return jsonify({'error': error_msg}), 500
+    
+@app.route('/api/check_password_breach', methods=['POST'])
+def check_password_breach():
+    data = request.json
+    password  = data.get('password', '')
 
+    if not password:
+        return jsonify({'error': 'La contraseña es requerida'}), 400
+    
+    try:
+        sha1_hash = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
+        prefix = sha1_hash[:5]
+        suffix = sha1_hash[5:]
+        url = f"https://api.pwnedpasswords.com/range/{prefix}"
+        response = requests.get(url, timeout=10)
+
+        if response.status_code != 200:
+            return jsonify({'error': 'Error al verificar la contraseña'}), 500
+        
+        hashes = response.text.splitlines()
+
+        for line in hashes:
+            hash_suffix, count = line.split(':')
+            if hash_suffix == suffix:
+                count = int(count)
+                severity = 'high' if count > 100000 else 'medium' if count > 1000 else 'low'
+                return jsonify({
+                    'breached': True, 
+                    'count': count,
+                    'severity': severity,
+                    'message': f'⚠️ Esta contraseña ha sido encontrada {count:,} veces en filtraciones de datos'
+                }), 200
+            
+        return jsonify({
+            'breached': False, 
+            'count': 0,
+            'severity': 'safe',
+            'message': '✅ Esta contraseña no ha sido encontrada en filtraciones conocidas'
+        }), 200
+    except Exception as e:
+        error_msg = f"Error checking password breach: {str(e)}"
+        print(error_msg)
+        return jsonify({'error': error_msg}), 500
+    
+
+@app.route('/api/export_passwords', methods=['POST'])
+def export_passwords():
+    data = request.json
+    passwords = data.get('passwords', [])
+    format_type = data.get('format','csv')
+
+    if not passwords:
+        return jsonify({'error': 'No se han proporcionado contraseñas para exportar'}), 400
+    
+    ##if format_type ==
+    
 if __name__ == '__main__':
     print("Starting server on http://127.0.0.1:5000")
     app.run(debug=True, host='0.0.0.0')

@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { GenerateFakeData } from './components/GenerateFakeData';
 import { GenerateEmail } from './components/GenerateEmail';
 import { GeneratePassword } from './components/GeneratePassword';
+import { PasswordBreachChecker } from './components/PasswordBreachChecker';
 import { Navigation } from './components/Navigation';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
             <Route path="/generate-password" element={<GeneratePassword />} />
             <Route path="/generate-email" element={<GenerateEmail />} />
             <Route path="/generate-fake-data" element={<GenerateFakeData />} />
+            <Route path="/password-breach-checker" element={<PasswordBreachChecker />} />
             <Route path="/" element={<GeneratePassword />} />
           </Routes>
         </div>

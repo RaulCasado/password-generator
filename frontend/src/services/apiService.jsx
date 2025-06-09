@@ -89,3 +89,18 @@ export const getEmails = async (email) => {
     }
   }
 };
+
+export const checkPasswordBreach = async (password) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/api/check_password_breach`, {
+      password
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 400) {
+      throw new Error(error.response.data.error);
+    } else {
+      throw new Error(`Error al verificar la contraseña: ${error.message}`);
+    }
+  }
+};

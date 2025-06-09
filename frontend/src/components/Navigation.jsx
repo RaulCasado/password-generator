@@ -14,6 +14,9 @@ export function Navigation() {
         <li className="navigation-item">
           <Link to="/generate-fake-data" className="navigation-link">Generar Fake Data</Link>
         </li>
+        <li className="navigation-item">
+          <Link to="/password-breach-checker" className="navigation-link">Verificar Filtración</Link>
+        </li>
       </ul>
     </nav>
   );
