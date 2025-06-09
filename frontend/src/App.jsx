@@ -5,6 +5,7 @@ import { GenerateEmail } from './components/GenerateEmail';
 import { GeneratePassword } from './components/GeneratePassword';
 import { PasswordBreachChecker } from './components/PasswordBreachChecker';
 import { Navigation } from './components/Navigation';
+import { PasswordTips } from './components/PasswordTips';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
             <Route path="/generate-email" element={<GenerateEmail />} />
             <Route path="/generate-fake-data" element={<GenerateFakeData />} />
             <Route path="/password-breach-checker" element={<PasswordBreachChecker />} />
+            <Route path="/password-tips" element={<PasswordTips />} />
             <Route path="/" element={<GeneratePassword />} />
           </Routes>
         </div>

@@ -17,6 +17,9 @@ export function Navigation() {
         <li className="navigation-item">
           <Link to="/password-breach-checker" className="navigation-link">Verificar Filtración</Link>
         </li>
+        <li className='navigation-item'>
+          <Link to="/password-tips" className="navigation-link">Tips Adicionales</Link>
+        </li>
       </ul>
     </nav>
   );
