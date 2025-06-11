@@ -128,3 +128,12 @@ To install and run the frontend:
 - **Generate Fake Data:** Select various types of fake personal data to generate, such as name, address, postal code, phone number, credit card details, age, and DNI (national identity document).
 
 - **Generate Email:** Create a temporary email address to receive messages without using your real email. View messages received at this address directly in the application.
+
+
+add this to the manifest.json
+
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
