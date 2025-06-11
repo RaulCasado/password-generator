@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { SavedPasswordItem } from './SavedPasswordItem';
 import './SavedPasswords.css';
 
-export function SavedPasswords({ onSelect }) {
+export function SavedPasswords() {
   const [savedPasswords, setSavedPasswords] = useState([]);
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [newPasswordLabel, setNewPasswordLabel] = useState('');
@@ -24,12 +24,6 @@ export function SavedPasswords({ onSelect }) {
     const updated = savedPasswords.filter(item => item.password !== passwordToDelete);
     setSavedPasswords(updated);
     sessionStorage.setItem('savedPasswords', JSON.stringify(updated));
-  };
-  
-  const showSavePasswordForm = (password) => {
-    setPasswordToSave(password);
-    setNewPasswordLabel('');
-    setShowSaveForm(true);
   };
   
   const handleSavePassword = () => {

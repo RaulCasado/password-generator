@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { SavedPasswordItem } from './SavedPasswordItem';
 import './PasswordHistory.css';
 
-export function PasswordHistory({ onSelect, onClear }) {
+export function PasswordHistory() {
   const [history, setHistory] = useState([]);
   
   useEffect(() => {
@@ -26,7 +26,6 @@ export function PasswordHistory({ onSelect, onClear }) {
   const handleClearHistory = () => {
     setHistory([]);
     sessionStorage.removeItem('passwordHistory');
-    if (onClear) onClear();
   };
   
   if (history.length === 0) {

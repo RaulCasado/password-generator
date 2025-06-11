@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { generateEmail, getEmails } from "../services/apiService";
 import './GenerateEmail.css';
 
