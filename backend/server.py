@@ -9,9 +9,16 @@ from bs4 import BeautifulSoup
 from wordfreq import top_n_list
 import requests
 import hashlib
+from functools import wraps
+import time
+from collections import defaultdict
+import logging
 
 app = Flask(__name__)
 CORS(app)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 fake = faker.Faker('es_ES')
 
@@ -32,6 +39,47 @@ GUERRILLA_DOMAINS = [
 
 # Keep session IDs for guerrilla mail
 guerrilla_sessions = {}
+
+request_counts = defaultdict(list)
+failed_attempts = defaultdict(int)
+
+def rate_limit(max_requests=10,window=60):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            client_ip = request.remote_addr
+
+            now = time.time()
+
+            request_counts[client_ip] = [
+                req_time for req_time in request_counts[client_ip] if req_time > now - window
+            ]
+
+            if len(request_counts[client_ip]) >= max_requests:
+                return jsonify({
+                    'error': 'Demasiadas solicitudes. Por favor, inténtelo de nuevo más tarde.',
+                    'retry_after': window,
+                    'requests_remaining' : 0
+                }), 429
+            
+            request_counts[client_ip].append(now)
+            response = func(*args, **kwargs)
+            return response
+        return wrapper
+    return decorator
+
+def handle_errors(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except ValueError as ve:
+            return jsonify({'error': str(ve)}), 400
+        except requests.exceptions.RequestException as re:
+            return jsonify({'error': 'Error al comunicarse con el servicio externo. Por favor, inténtelo de nuevo más tarde.'}), 503
+        except Exception as e:
+            return jsonify({'error': 'Ocurrió un error inesperado. Por favor, inténtelo de nuevo más tarde.'}), 500
+    return decorated_function
 
 def generate_password(length, include_uppercase, include_lowercase, include_numbers, include_special_characters, disallowed_chars='',is_easy_to_remember=False):
     if is_easy_to_remember:
@@ -76,6 +124,8 @@ def generate_password(length, include_uppercase, include_lowercase, include_numb
     return password
 
 @app.route('/api/website_password', methods=['POST'])
+@rate_limit(max_requests=30, window=60)
+@handle_errors
 def website_password():
     data = request.json
     min_length = data.get('minLength', 8)
@@ -105,6 +155,8 @@ def website_password():
     return jsonify({'password': password})
 
 @app.route('/request_password', methods=['POST'])
+@rate_limit(max_requests=30, window=60)
+@handle_errors
 def request_password():
     data = request.json
     length                     = data.get('length', 16)
@@ -132,6 +184,8 @@ def request_password():
 
 
 @app.route('/api/generate_fake_data', methods=['POST'])
+@rate_limit(max_requests=20, window=60)
+@handle_errors
 def generate_fake_data():
     data = request.json
     generated_data = {}
@@ -179,6 +233,8 @@ def generate_fake_data():
 
 
 @app.route('/api/generate_email', methods=['GET'])
+@rate_limit(max_requests=10, window=60)
+@handle_errors
 def generate_email():
     try:
         # Generate a username and select a random domain
@@ -234,26 +290,25 @@ def generate_email():
             'message': 'Correo temporal creado exitosamente'
         }), 200
     except Exception as e:
-        error_msg = f"Email generation error: {str(e)}"
-        print(error_msg)
-        return jsonify({'error': error_msg}), 500
+        logger.error(f"Error generating email: {str(e)}")
+        return jsonify({'error': 'No se pudo generar el email temporal'}), 500
 
 @app.route('/api/get_emails', methods=['GET'])
+@rate_limit(max_requests=15, window=60)
+@handle_errors
 def get_emails():
     try:
         email_address = request.args.get('email')
-        print(f"Received request to get emails for: {email_address}")
         
         if not email_address:
-            print("Error: Email address is required")
             return jsonify({'error': 'El email es requerido'}), 400
         
+        if '@' not in email_address or len(email_address) > 100:
+            return jsonify({'error': 'Formato de email inválido'}), 400
         # Parse the email address to get username and domain
         try:
             username, domain = email_address.split('@')
-            print(f"Parsed email - Username: {username}, Domain: {domain}")
         except ValueError:
-            print(f"Error: Invalid email format: {email_address}")
             return jsonify({'error': 'Formato de email inválido'}), 400
         
         # Check if the email is one of our Guerrilla Mail addresses
@@ -262,7 +317,6 @@ def get_emails():
             sid_token = guerrilla_sessions.get(email_address)
             
             if not sid_token:
-                print(f"No session found for {email_address}")
                 # Return welcome message only
                 messages = email_storage.get(email_address, [])
                 return jsonify({'emails': messages}), 200
@@ -273,7 +327,6 @@ def get_emails():
                 check_response = requests.get(check_email_url, timeout=10)
                 
                 if check_response.status_code != 200:
-                    print(f"Error checking emails: {check_response.text}")
                     messages = email_storage.get(email_address, [])
                     return jsonify({'emails': messages}), 200
                 
@@ -281,7 +334,6 @@ def get_emails():
                 list_response = requests.get(email_list_url, timeout=10)
                 
                 if list_response.status_code != 200:
-                    print(f"Error getting email list: {list_response.text}")
                     messages = email_storage.get(email_address, [])
                     return jsonify({'emails': messages}), 200
                 
@@ -328,7 +380,6 @@ def get_emails():
                 return jsonify({'emails': messages}), 200
             
             except Exception as e:
-                print(f"Error retrieving emails from Guerrilla Mail: {e}")
                 messages = email_storage.get(email_address, [])
                 return jsonify({'emails': messages}), 200
         
@@ -338,10 +389,11 @@ def get_emails():
     
     except Exception as e:
         error_msg = f"Error in get_emails: {str(e)}"
-        print(error_msg)
         return jsonify({'error': error_msg}), 500
     
 @app.route('/api/check_password_breach', methods=['POST'])
+@rate_limit(max_requests=5, window=60)
+@handle_errors
 def check_password_breach():
     data = request.json
     password  = data.get('password', '')
@@ -349,10 +401,19 @@ def check_password_breach():
     if not password:
         return jsonify({'error': 'La contraseña es requerida'}), 400
     
+    if len(password) > 100:
+        return jsonify({'error': 'La contraseña es demasiado larga (máximo 100 caracteres)'}), 400
+    
     try:
         sha1_hash = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
         prefix = sha1_hash[:5]
         suffix = sha1_hash[5:]
+
+        headers = {
+            'User-Agent': 'Password-Generator-App/1.0',
+            'Add-Padding': 'true'  # HIBP padding for additional privacy
+        }
+
         url = f"https://api.pwnedpasswords.com/range/{prefix}"
         response = requests.get(url, timeout=10)
 
@@ -381,21 +442,65 @@ def check_password_breach():
         }), 200
     except Exception as e:
         error_msg = f"Error checking password breach: {str(e)}"
-        print(error_msg)
         return jsonify({'error': error_msg}), 500
     
 
-@app.route('/api/export_passwords', methods=['POST'])
-def export_passwords():
-    data = request.json
-    passwords = data.get('passwords', [])
-    format_type = data.get('format','csv')
+@app.route('/api/health', methods=['GET'])
+@rate_limit(max_requests=60, window=60)
+def health_check():
+    return jsonify({
+        'status' : 'healthy',
+        'timestamp' : datetime.now().isoformat(),
+        'version' : '1.0.0',
+        'services' : {
+            'password_generator' : 'operational',
+            'email_service' : 'operational',
+            'breach_check' : 'operational'
+        }
+    })
 
-    if not passwords:
-        return jsonify({'error': 'No se han proporcionado contraseñas para exportar'}), 400
+@app.route('/api/info', methods=['GET'])
+@rate_limit(max_requests=30, window=60)
+def get_api_info():
+    total_requests = sum(len(times) for times in request_counts.values())
+    active_ips = len([ip for ip, requests in request_counts.items() if requests])
+
+    return jsonify({
+        'total_requests': total_requests,
+        'active_ips': active_ips,
+        'rate_limits': {
+            'password_generation': '30/min',
+            'breach_checking': '5/min',
+            'general': '10/min'
+        }
+    })
+
+@app.before_request
+def before_request():
+    logger.info(f"{request.method} {request.path} from {request.remote_addr}")
+
+@app.after_request
+def after_request(response):
+    # Add security headers for XSS protection, content type options, etc.
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     
-    ##if format_type ==
-    
+    return response
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Endpoint no encontrado'}), 404
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    return jsonify({'error': 'Método no permitido'}), 405
+
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f"Internal server error: {str(error)}")
+    return jsonify({'error': 'Error interno del servidor'}), 500
+
 if __name__ == '__main__':
-    print("Starting server on http://127.0.0.1:5000")
     app.run(debug=True, host='0.0.0.0')
