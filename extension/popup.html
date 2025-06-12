@@ -1,14 +1,64 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="utf-8">
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <h1>Hola, Mundo!</h1>
-    <p class="red">Esta es una extensión de Chrome.</p>
+    <div class="container">
+        <div class="header">
+            <h1>Generador de Contraseñas</h1>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="password">Contraseña</button>
+            <button class="tab-btn" data-tab="fake-data">Datos Falsos</button>
+        </div>
+
+        <!-- Password Generator Tab -->
+        <div id="password-tab" class="tab-content active">
+            <div class="form-group">
+                <label>Longitud: <span id="length-value">12</span></label>
+                <input type="range" id="length" min="4" max="50" value="12">
+            </div>
+
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="uppercase" checked> Mayúsculas</label>
+                <label><input type="checkbox" id="lowercase" checked> Minúsculas</label>
+                <label><input type="checkbox" id="numbers" checked> Números</label>
+                <label><input type="checkbox" id="special"> Caracteres especiales</label>
+                <label><input type="checkbox" id="easy-remember"> Fácil de recordar</label>
+            </div>
+
+            <button id="generate-password" class="btn primary">Generar Contraseña</button>
+
+            <div id="password-result" class="result hidden">
+                <input type="text" id="generated-password" readonly>
+                <button id="copy-password" class="btn secondary">Copiar</button>
+            </div>
+        </div>
+
+        <!-- Fake Data Generator Tab -->
+        <div id="fake-data-tab" class="tab-content">
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="fake-name" checked> Nombre</label>
+                <label><input type="checkbox" id="fake-address" checked> Dirección</label>
+                <label><input type="checkbox" id="fake-phone" checked> Teléfono</label>
+                <label><input type="checkbox" id="fake-email" checked> Correo electrónico</label>
+                <label><input type="checkbox" id="fake-age" checked> Edad</label>
+                <label><input type="checkbox" id="fake-dni"> DNI</label>
+            </div>
+
+            <button id="generate-fake-data" class="btn primary">Generar Datos</button>
+
+            <div id="fake-data-result" class="result hidden">
+                <div id="fake-data-list"></div>
+            </div>
+        </div>
+
+        <div id="status" class="status"></div>
+    </div>
+
     <script src="popup.js"></script>
 </body>
 </html>

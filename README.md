@@ -131,9 +131,3 @@ To install and run the frontend:
 
 
 add this to the manifest.json
-
-    "icons": {
-        "16": "icons/icon16.png",
-        "48": "icons/icon48.png",
-        "128": "icons/icon128.png"
-    },
