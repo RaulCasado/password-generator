@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { checkPasswordBreach } from '../services/apiService';
-import './PasswordBreachChecker.css';
+import './password-breach-checker.css';
 
 export function PasswordBreachChecker() {
     const [password, setPassword] = useState('');

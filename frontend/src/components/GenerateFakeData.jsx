@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchFakeData } from '../services/apiService';
-import './GenerateFakeData.css'; // Estilos específicos para este componente
+import './generate-fake-data.css'; // Estilos específicos para este componente
 
 export function GenerateFakeData() {
   const [generatedData, setGeneratedData] = useState(null);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import './PasswordStrengthMeter.css';
+import './password-strength-meter.css';
 
 export function PasswordStrengthMeter({ password }) {
   const [strength, setStrength] = useState(0);

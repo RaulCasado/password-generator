@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './WebsiteRequirements.css';
+import './website-requirements.css';
 
 export function WebsiteRequirements({ onGeneratePassword }) {
   const [website, setWebsite] = useState('');

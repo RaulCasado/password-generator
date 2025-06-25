@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import "./PasswordTips.css";
+import "./password-tips.css";
 
 const tips = [
     {

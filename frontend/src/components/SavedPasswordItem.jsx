@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './SavedPasswordItem.css';
+import './saved-password-item.css';
 
 export function SavedPasswordItem({ password, label, onDelete, onCopy }) {
   const [showPassword, setShowPassword] = useState(false);

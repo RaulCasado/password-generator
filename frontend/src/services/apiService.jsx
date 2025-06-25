@@ -69,15 +69,11 @@ export const generateEmail = async () => {
 
 export const getEmails = async (email) => {
   try {
-    console.log(`Fetching emails for: ${email}`);
     const response = await axios.get(`${API_BASE_URL}/api/get_emails?email=${email}`, { timeout: 15000 });
-    console.log('Response:', response.data);
     
     // Return the emails array or empty array if not present
     return response.data.emails || [];
   } catch (error) {
-    console.error('Error fetching emails:', error);
-    
     if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
       throw new Error("No se pudo conectar con el servidor. Verifique que el servidor backend esté en ejecución en http://127.0.0.1:5000");
     }

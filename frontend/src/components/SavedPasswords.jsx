@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { SavedPasswordItem } from './SavedPasswordItem';
-import './SavedPasswords.css';
+import './saved-passwords.css';
 
 export function SavedPasswords() {
   const [savedPasswords, setSavedPasswords] = useState([]);
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [newPasswordLabel, setNewPasswordLabel] = useState('');
   const [passwordToSave, setPasswordToSave] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
   
   useEffect(() => {
     const saved = sessionStorage.getItem('savedPasswords');
@@ -15,9 +16,19 @@ export function SavedPasswords() {
     }
   }, []);
   
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+  };
+
   const handleCopyPassword = (password) => {
-    navigator.clipboard.writeText(password);
-    // Show feedback - could implement toast notification here
+    navigator.clipboard.writeText(password)
+      .then(() => {
+        showToast('Contraseña copiada al portapapeles', 'success');
+      })
+      .catch(() => {
+        showToast('Error al copiar la contraseña', 'error');
+      });
   };
   
   const handleDeletePassword = (passwordToDelete) => {

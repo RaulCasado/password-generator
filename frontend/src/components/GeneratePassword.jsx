@@ -4,7 +4,7 @@ import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { SavedPasswords } from './SavedPasswords';
 import { PasswordHistory } from './PasswordHistory';
 import { WebsiteRequirements } from './WebsiteRequirements';
-import './GeneratePassword.css';
+import './generate-password.css';
 
 export function GeneratePassword() {
   const [password, setPassword] = useState('');

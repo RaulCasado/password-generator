@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { generateEmail, getEmails } from "../services/apiService";
-import './GenerateEmail.css';
+import './generate-email.css';
 
 export function GenerateEmail() {
   const [email, setEmail] = useState('');
@@ -18,7 +18,6 @@ export function GenerateEmail() {
       setSuccessMessage('');
       
       const response = await generateEmail();
-      console.log("Email generation response:", response);  // Debug output
       
       if (!response || !response.email) {
         throw new Error("No se pudo generar un correo temporal. La respuesta del servidor es inválida.");
@@ -47,8 +46,7 @@ export function GenerateEmail() {
       // Set success message
       setSuccessMessage(`Correo temporal generado: ${tempEmail}.`);
     } catch (error) {
-      console.error("Email generation error:", error);  // Debug output
-      setError("No se pudo generar el correo temporal. Por favor verifique que el servidor backend esté en funcionamiento.");
+      setError("No se pudo generar el correo temporal.");
     } finally {
       setLoading(false);
     }
