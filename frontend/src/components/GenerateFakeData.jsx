@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { fetchFakeData } from '../services/apiService';
+import { useToast } from '../context/useToast';
 import './generate-fake-data.css'; // Estilos específicos para este componente
 
 export function GenerateFakeData() {
   const [generatedData, setGeneratedData] = useState(null);
   const [error, setError] = useState(null);
+  const { showToast } = useToast();
   const [data, setData] = useState({
     name: true,
     address: true,
@@ -28,17 +30,19 @@ export function GenerateFakeData() {
     try {
       const generatedData = await fetchFakeData(data);
       setGeneratedData(generatedData);
+      showToast('¡Datos falsos generados exitosamente!', 'success');
     } catch (error) {
       setError(error.message);
+      showToast('Error al generar los datos falsos', 'error');
     }
   };
 
   useEffect(() => {
     const language = navigator.language;
-    setData({
-      ...data,
+    setData(prevData => ({
+      ...prevData,
       userLanguage: language,
-    });
+    }));
   }, []);
 
   return (
@@ -130,7 +134,9 @@ export function GenerateFakeData() {
 
       {generatedData && (
         <div className="generated-data">
-          <h3>Datos Generados</h3>
+          <div className="generated-data-header">
+            <h3>Datos Generados</h3>
+          </div>
           <ul>
             {Object.entries(generatedData).map(([key, value]) => (
               <li key={key}>

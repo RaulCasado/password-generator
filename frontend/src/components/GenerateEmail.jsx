@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { generateEmail, getEmails } from "../services/apiService";
+import { useToast } from '../context/useToast';
 import './generate-email.css';
 
 export function GenerateEmail() {
@@ -9,6 +10,7 @@ export function GenerateEmail() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [checkingInterval, setCheckingInterval] = useState(null);
+  const { showToast } = useToast();
 
 
   const handleGenerateEmail = async () => {
@@ -45,8 +47,10 @@ export function GenerateEmail() {
       
       // Set success message
       setSuccessMessage(`Correo temporal generado: ${tempEmail}.`);
+      showToast('¡Correo temporal generado exitosamente!', 'success');
     } catch (error) {
       setError("No se pudo generar el correo temporal.");
+      showToast('Error al generar el correo temporal', 'error');
     } finally {
       setLoading(false);
     }
@@ -62,15 +66,24 @@ export function GenerateEmail() {
       setError('');
       
       const receivedEmails = await getEmails(email);
+      const previousCount = messages.length;
       setMessages(receivedEmails);
       
       if (showLoading) {
         setSuccessMessage('Mensajes actualizados correctamente');
+        showToast('Mensajes actualizados', 'success');
         // Clear success message after 3 seconds
         setTimeout(() => setSuccessMessage(''), 3000);
+      } else if (receivedEmails.length > previousCount) {
+        // New messages received during automatic check
+        const newMessagesCount = receivedEmails.length - previousCount;
+        showToast(`${newMessagesCount} nuevo${newMessagesCount > 1 ? 's' : ''} mensaje${newMessagesCount > 1 ? 's' : ''} recibido${newMessagesCount > 1 ? 's' : ''}`, 'success');
       }
     } catch (error) {
       setError("Error al verificar los mensajes. Por favor verifique que el servidor backend esté en funcionamiento.");
+      if (showLoading) {
+        showToast('Error al verificar los mensajes', 'error');
+      }
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -103,10 +116,13 @@ export function GenerateEmail() {
       {email ? (
         <div className="email-display">
           <p className="generated-email">Tu correo temporal es: <span className="email">{email}</span></p>
-          <button className="copy-email-btn" onClick={() => {
-            navigator.clipboard.writeText(email);
-            setSuccessMessage('Correo copiado al portapapeles');
-            setTimeout(() => setSuccessMessage(''), 3000);
+          <button className="copy-email-btn" onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(email);
+              showToast('Correo copiado al portapapeles', 'success');
+            } catch (error) {
+              showToast('Error al copiar el correo', 'error');
+            }
           }}>
             Copiar dirección
           </button>

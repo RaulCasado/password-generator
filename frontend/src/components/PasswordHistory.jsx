@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { SavedPasswordItem } from './SavedPasswordItem';
+import { useToast } from '../context/useToast';
 import './password-history.css';
 
 export function PasswordHistory() {
   const [history, setHistory] = useState([]);
+  const { showToast } = useToast();
+  
   useEffect(() => {
     const savedHistory = sessionStorage.getItem('passwordHistory');
     if (savedHistory) {
@@ -12,19 +15,26 @@ export function PasswordHistory() {
   }, []);
   
 
-  const handleCopyPassword = (password) => {
-    navigator.clipboard.writeText(password)
+  const handleCopyPassword = async (password) => {
+    try {
+      await navigator.clipboard.writeText(password);
+      showToast('Contraseña copiada al portapapeles', 'success');
+    } catch (error) {
+      showToast('Error al copiar la contraseña', 'error');
+    }
   };
   
   const handleDeletePassword = (passwordToDelete) => {
     const updatedHistory = history.filter(item => item.password !== passwordToDelete);
     setHistory(updatedHistory);
     sessionStorage.setItem('passwordHistory', JSON.stringify(updatedHistory));
+    showToast('Contraseña eliminada del historial', 'success');
   };
   
   const handleClearHistory = () => {
     setHistory([]);
     sessionStorage.removeItem('passwordHistory');
+    showToast('Historial de contraseñas limpiado', 'success');
   };
   
   if (history.length === 0) {

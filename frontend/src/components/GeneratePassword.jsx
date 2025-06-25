@@ -4,6 +4,7 @@ import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { SavedPasswords } from './SavedPasswords';
 import { PasswordHistory } from './PasswordHistory';
 import { WebsiteRequirements } from './WebsiteRequirements';
+import { useToast } from '../context/useToast';
 import './generate-password.css';
 
 export function GeneratePassword() {
@@ -19,6 +20,7 @@ export function GeneratePassword() {
   const [passwordLabel, setPasswordLabel] = useState('');
   const [activeTab, setActiveTab] = useState('generator');
   const [copySuccess, setCopySuccess] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (copySuccess) {
@@ -56,10 +58,15 @@ export function GeneratePassword() {
     }
   };
 
-  const handleCopyPassword = () => {
+  const handleCopyPassword = async () => {
     if (password) {
-      navigator.clipboard.writeText(password);
-      setCopySuccess(true);
+      try {
+        await navigator.clipboard.writeText(password);
+        setCopySuccess(true);
+        showToast('¡Contraseña copiada al portapapeles!', 'success');
+      } catch (error) {
+        showToast('Error al copiar la contraseña', 'error');
+      }
     }
   };
 
@@ -83,6 +90,7 @@ export function GeneratePassword() {
       
       setShowSaveForm(false);
       setPasswordLabel('');
+      showToast('¡Contraseña guardada exitosamente!', 'success');
     }
   };
 

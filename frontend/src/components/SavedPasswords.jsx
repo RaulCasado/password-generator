@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SavedPasswordItem } from './SavedPasswordItem';
+import { useToast } from '../context/useToast';
 import './saved-passwords.css';
 
 export function SavedPasswords() {
@@ -7,6 +8,7 @@ export function SavedPasswords() {
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [newPasswordLabel, setNewPasswordLabel] = useState('');
   const [passwordToSave, setPasswordToSave] = useState('');
+  const { showToast } = useToast();
   
   useEffect(() => {
     const saved = sessionStorage.getItem('savedPasswords');
@@ -16,14 +18,20 @@ export function SavedPasswords() {
   }, []);
   
 
-  const handleCopyPassword = (password) => {
-    navigator.clipboard.writeText(password)
+  const handleCopyPassword = async (password) => {
+    try {
+      await navigator.clipboard.writeText(password);
+      showToast('Contraseña copiada al portapapeles', 'success');
+    } catch (error) {
+      showToast('Error al copiar la contraseña', 'error');
+    }
   };
   
   const handleDeletePassword = (passwordToDelete) => {
     const updated = savedPasswords.filter(item => item.password !== passwordToDelete);
     setSavedPasswords(updated);
     sessionStorage.setItem('savedPasswords', JSON.stringify(updated));
+    showToast('Contraseña eliminada', 'success');
   };
   
   const handleSavePassword = () => {
@@ -38,6 +46,7 @@ export function SavedPasswords() {
     const updated = [...savedPasswords, newEntry];
     setSavedPasswords(updated);
     sessionStorage.setItem('savedPasswords', JSON.stringify(updated));
+    showToast('Contraseña guardada exitosamente', 'success');
     
     setShowSaveForm(false);
     setPasswordToSave('');
