@@ -4,7 +4,6 @@ import './password-history.css';
 
 export function PasswordHistory() {
   const [history, setHistory] = useState([]);
-  const [toast, setToast] = useState({show: false, message: '', type: ''});
   useEffect(() => {
     const savedHistory = sessionStorage.getItem('passwordHistory');
     if (savedHistory) {
@@ -12,21 +11,9 @@ export function PasswordHistory() {
     }
   }, []);
   
-  const showToast = (message, type = 'info') => {
-    setToast({show: true, message, type});
-    setTimeout(() => {
-      setToast({show: false, message: '', type: ''});
-    }, 3000);
-  };
 
   const handleCopyPassword = (password) => {
     navigator.clipboard.writeText(password)
-      .then(() => {
-        showToast('Contraseña copiada al portapapeles', 'success');
-      })
-      .catch(() => {
-        showToast('Error al copiar la contraseña', 'error');
-      });
   };
   
   const handleDeletePassword = (passwordToDelete) => {
